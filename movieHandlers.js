@@ -60,38 +60,6 @@ const getMovieById = (req, res) => {
     });
 };
 
-const getUsers = (req, res) => {
-  database
-    .query("select * from users")
-    .then(([user]) => {
-      res.status(200).json(user);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving data from database");
-    });
-};
-
-const getUsersById = (req, res) => {
-  const usersId = parseInt(req.params.id);
-
-  // const users = users.find((user) => user.id === id);
-
-  database
-    .query("select * from users where id = ?", [usersId])
-    .then(([user]) => {
-      if(user.length>0){
-        res.status(200).json(user);
-      } else {
-        res.status(404).send("Not found");
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving data from database");
-    });
-};
-
 const postMovies = (req, res) => {
   const { title, director, year, color, duration } = req.body;
 
@@ -111,30 +79,29 @@ const postMovies = (req, res) => {
     });
 };
 
-const postUsers = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+const putMovie = (req, res) => {
 
   database
     .query(
-      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
+      "UPDATE movies SET ? WHERE id = ?", [req.body, req.params.id]
     )
     .then(([result]) => {
-      const id = parseInt(result.insertId)
-      console.log(result)
-      res.location(`./api/users/${id}`).sendStatus(201);
+      if(result.affectedRows === 0){
+        res.status(404).send("Not Found");
+      } else {
+        res.sendStatus(200)
+      }
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error saving the user");
+      res.status(500).send("Error update the movie");
     });
-};
+}
+
 
 module.exports = {
   getMovies,
   getMovieById,
-  getUsers,
-  getUsersById,
   postMovies,
-  postUsers
+  putMovie
 };
