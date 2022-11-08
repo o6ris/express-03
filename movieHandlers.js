@@ -28,10 +28,27 @@ const movies = [
 const database = require("./database");
 
 const getMovies = (req, res) => {
+  let sql = "select * from movies";
+  const sqlValues = [];
+
+  if (req.query.color != null) {
+    sql += " where color = ?";
+    sqlValues.push(req.query.color);
+
+    if (req.query.max_duration != null) {
+      sql += " and duration <= ?";
+      sqlValues.push(req.query.max_duration);
+    }
+  } else if (req.query.max_duration != null) {
+    sql += " where duration <= ?";
+    sqlValues.push(req.query.max_duration);
+  }
+
+
   database
-    .query("select * from movies")
+    .query(sql, sqlValues)
     .then(([movies]) => {
-      res.status(200).json(movies);
+      res.json(movies);
     })
     .catch((err) => {
       console.error(err);
@@ -49,7 +66,6 @@ const getMovieById = (req, res) => {
     .then(([movie]) => {
       if(movie.length>0){
         res.status(200).json(movie);
-        console.log(movie)
       } else {
         res.status(404).send("Not found");
       }
@@ -70,7 +86,6 @@ const postMovies = (req, res) => {
     )
     .then(([result]) => {
       const id = parseInt(result.insertId)
-      console.log(result)
       res.location(`./api/movies/${id}`).sendStatus(201);
     })
     .catch((err) => {
